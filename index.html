@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BFS: Көлденеңінен іздеу</title>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.14);--tx:#eef2ff;--tx2:#a5b0da;--c1:#22d3ee;--c2:#8b5cf6;--ok:#22c55e;--bad:#ef4444;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;background:radial-gradient(circle at 10% 0,rgba(139,92,246,.3),transparent 40%),radial-gradient(circle at 95% 25%,rgba(34,211,238,.2),transparent 40%),var(--bg);background-attachment:fixed}
+.wrap{max-width:860px;margin:0 auto;padding:22px 16px 60px}
+h1{margin:0;font-size:clamp(26px,5vw,38px);background:linear-gradient(90deg,#fff,var(--c1));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--tx2);margin:4px 0 18px}
+h2{margin:0 0 10px;font-size:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+p{margin:8px 0}
+input,select,textarea{font:inherit;color:var(--tx);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input{width:100%;margin:6px 0}
+button{font:inherit;font-weight:700;color:#fff;background:linear-gradient(90deg,var(--c2),#2563eb);border:0;border-radius:8px;padding:10px 18px;cursor:pointer}
+button.g{background:rgba(255,255,255,.12)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+th{color:var(--tx2);font-weight:600}
+pre,textarea.code{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#070b19;border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;overflow-x:auto;white-space:pre-wrap;color:#d7defa}
+textarea.code{width:100%;min-height:340px;resize:vertical;white-space:pre;overflow:auto}
+#out{min-height:70px;max-height:260px;overflow:auto}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.ch{padding:6px 10px;border-radius:8px;font-size:13px;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+.ch.ok{border-color:var(--ok);color:#9af0b8}.ch.no{border-color:var(--bad);color:#ffb0b0}
+.row{display:grid;grid-template-columns:1fr 90px 30px;gap:8px;align-items:center;margin:8px 0}
+.row b{font-size:18px}
+.def{font-size:14px;color:var(--tx2)}
+svg text{fill:#fff;font:700 15px system-ui;text-anchor:middle}
+.nd{fill:#5b21b6;stroke:var(--c1);stroke-width:2}.ed{stroke:var(--tx2);stroke-width:2}
+.big{font-size:34px;font-weight:800;color:var(--c1)}
+footer{text-align:center;margin-top:30px;font-size:13px}footer a{color:var(--tx2)}
+.err{color:#ffb0b0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="stu">
+<h1>Көлденеңінен іздеу (BFS)</h1>
+<p class="sub">11-сынып · Информатика · Практикалық сабақ</p>
+
+<section class="card" id="gate">
+<h2>Сабаққа кіру</h2>
+<input id="nm" placeholder="Аты-жөніңіз" autocomplete="off">
+<input id="cl" placeholder="Сыныбыңыз (мысалы, 11 Ә)" autocomplete="off">
+<p class="err" id="ge"></p>
+<button id="go">Сабақты бастау</button>
+</section>
+
+<main id="lesson" hidden>
+<section class="card">
+<h2>Бағалау: барлығы 10 ұпай</h2>
+<table>
+<tr><th>Тапсырма</th><th>Дескриптор</th><th>Ұпай</th></tr>
+<tr><td rowspan="4">1-тапсырма (Python)</td><td>Кодты қатесіз іске қосады</td><td>1</td></tr>
+<tr><td>Барлық шыңдарды дұрыс ретпен шығарады (1, 2, 3, 4, 5, 6)</td><td>2</td></tr>
+<tr><td>Кезекке қосу және кезектен алу қадамдарын print арқылы көрсетеді</td><td>2</td></tr>
+<tr><td>Нәтижені 1–2 сөйлеммен түсіндіреді (мұғалім бағалайды)</td><td>1</td></tr>
+<tr><td>2-тапсырма (сәйкестендіру)</td><td>Әр дұрыс сәйкестік</td><td>1+1+1+1</td></tr>
+</table>
+</section>
+
+<section class="card">
+<h2>1. Теориялық бөлім</h2>
+<p><b>Көлденеңінен іздеу (Breadth-First Search, BFS)</b> — граф шыңдарын деңгей-деңгейімен, бір қадамнан екінші қадамға біртіндеп айналып өтуге арналған алгоритм.</p>
+<p><b>Өмірден мысал.</b> Сіз үлкен лабиринтте немесе қаланың бейтаныс көшелерінде жүрсіз. BFS әдісімен алдымен тұрған жеріңізге тікелей қосылған барлық көршілес көшелерді шығасыз, содан кейін ғана екінші деңгейдегі алысырақ көшелерге өтесіз. Бұл суға тас тасталғанда толқынның жан-жаққа дөңгеленіп таралуына ұқсайды.</p>
+<p><b>Кезек (Queue).</b> BFS кезекті пайдаланады. Ол FIFO қағидатымен жұмыс істейді: бірінші келген — бірінші кетеді.</p>
+<p><b>Visited.</b> Бір шыңға қайта бармау үшін қаралған шыңдар visited жиынына тіркеледі.</p>
+<p><b>Қолданылуы.</b> Өлшенбеген графта ең қысқа жолды табу, әлеуметтік желіде ортақ достарды анықтау, лабиринттен шығу жолын табу.</p>
+<pre id="sample">from collections import deque
+
+def bfs(graph, start_node):
+    visited = set()
+    queue = deque([start_node])
+    visited.add(start_node)
+    order = []
+    while queue:
+        current = queue.popleft()
+        order.append(current)
+        for neighbor in graph[current]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    return order</pre>
+</section>
+
+<section class="card" id="t1">
+<h2>2. 1-тапсырма: Python</h2>
+<p>Төмендегі граф үшін <b>1</b> шыңынан бастап BFS орындаңыз. Шыңдардың айналып өту ретін шығарыңыз және кезекке элементтердің қалай қосылып, қалай алынатынын <code>print</code> арқылы экранға шығарыңыз.</p>
+<svg viewBox="0 0 360 200" width="100%" style="max-width:360px">
+<line class="ed" x1="180" y1="30" x2="90" y2="100"/><line class="ed" x1="180" y1="30" x2="270" y2="100"/>
+<line class="ed" x1="90" y1="100" x2="50" y2="170"/><line class="ed" x1="90" y1="100" x2="140" y2="170"/><line class="ed" x1="270" y1="100" x2="270" y2="170"/>
+<circle class="nd" cx="180" cy="30" r="18"/><text x="180" y="36">1</text>
+<circle class="nd" cx="90" cy="100" r="18"/><text x="90" y="106">2</text>
+<circle class="nd" cx="270" cy="100" r="18"/><text x="270" y="106">3</text>
+<circle class="nd" cx="50" cy="170" r="18"/><text x="50" y="176">4</text>
+<circle class="nd" cx="140" cy="170" r="18"/><text x="140" y="176">5</text>
+<circle class="nd" cx="270" cy="170" r="18"/><text x="270" y="176">6</text>
+</svg>
+<textarea class="code" id="ed" spellcheck="false"></textarea>
+<p><button id="run">▶ Орындау</button> <button class="g" id="reset">Бастапқы код</button></p>
+<pre id="out">Нәтиже осында шығады.</pre>
+<div class="chips" id="chips"></div>
+<p>Нәтижені 1–2 сөйлеммен түсіндіріңіз: кезек пен visited қалай өзгеріп отырды?</p>
+<textarea id="ex" rows="3" style="width:100%" placeholder="Түсіндірмеңізді жазыңыз"></textarea>
+</section>
+
+<section class="card" id="t2">
+<h2>3. 2-тапсырма: сәйкестендіру</h2>
+<p class="def"><b>A)</b> Шыңның бұрын қаралып, тексерілгенін не тексерілмегенін сақтайтын логикалық мәндер жиыны.<br><b>B)</b> Графтағы әрбір шыңды деңгей бойынша, жақын көршілерінен бастап тізбектей аралап шығу әдісі.<br><b>C)</b> «Бірінші келген — бірінші кетеді» (алғашқы кірген элемент бірінші шығады).<br><b>D)</b> Шыңдарды кезектілікпен сақтап, кезек ретімен өңдеуді қамтамасыз ететін деректер құрылымы.</p>
+<div id="rows"></div>
+<button id="chk">Тексеру</button> <span id="t2s"></span>
+</section>
+
+<section class="card" id="res">
+<h2>4. Нәтиже</h2>
+<p>Алдын ала ұпай: <span class="big" id="tot">0</span> / 9</p>
+<p class="def">Соңғы ұпай (10-ға дейін) мұғалім түсіндірмені бағалағаннан кейін шығады.</p>
+<button id="snd">Нәтижені мұғалімге жіберу</button>
+<div id="sendbox" hidden>
+<p>Төмендегі кодты көшіріп, мұғалімге жіберіңіз (WhatsApp, Telegram немесе басқа жолмен).</p>
+<textarea id="rc" class="code" readonly style="min-height:120px"></textarea>
+<button id="cp">Көшіру</button> <span id="cps"></span>
+</div>
+</section>
+</main>
+</div>
+
+<section id="tp" hidden>
+<h1>Мұғалім панелі</h1>
+<p class="sub">Оқушылардың нәтиже кодтарын осында қойыңыз. Тізім осы браузерде сақталады.</p>
+<div class="card">
+<textarea id="tc" rows="3" style="width:100%" placeholder="Оқушының нәтиже кодын қойыңыз (HM1:...)"></textarea>
+<p><button id="ta">Қосу</button> <span class="err" id="te"></span></p>
+</div>
+<div class="card" style="overflow-x:auto"><div id="tt"></div><p><button class="g" id="tx">Таблицаны көшіру</button> <span id="txs"></span></p></div>
+<div class="card" id="td" hidden></div>
+<p><a href="#" style="color:var(--tx2)">← Оқушы беті</a></p>
+</section>
+<footer><a href="#teacher">Мұғалім үшін</a></footer>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var STARTER='from collections import deque\n\ngraph = {\n    1: [2, 3],\n    2: [1, 4, 5],\n    3: [1, 6],\n    4: [2],\n    5: [2],\n    6: [3]\n}\n\ndef bfs(graph, start_node):\n    visited = set()\n    queue = deque([start_node])\n    visited.add(start_node)\n    order = []\n    while queue:\n        current = queue.popleft()\n        order.append(current)\n        for neighbor in graph[current]:\n            if neighbor not in visited:\n                visited.add(neighbor)\n                queue.append(neighbor)\n    return order\n\n# Тапсырма: кезекке қосу және алу қадамдарын print арқылы шығарыңыз\nprint("BFS реті:", bfs(graph, 1))\n';
+var KEY=["D","C","B","A"],TERMS=["Кезек (Queue)","FIFO принципі","BFS (Көлденеңінен іздеу)","Visited (Тексерілгендер)"];
+var ST={name:"",cls:"",code:STARTER,out:"",err:"",expl:"",t2:["","","",""],att:0,m:0,d:[0,0,0]};
+try{var sv=JSON.parse(localStorage.getItem("bfsl")||"null");if(sv)ST=Object.assign(ST,sv)}catch(e){}
+function save(){try{localStorage.setItem("bfsl",JSON.stringify(ST))}catch(e){}}
+function bread(x){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][x]===undefined)throw"File not found: '"+x+"'";return Sk.builtinFiles["files"][x]}
+function runPy(code,cb){
+  var out="";
+  Sk.configure({output:function(t){out+=t},read:bread,__future__:Sk.python3,execLimit:8000});
+  Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true)}).then(function(){cb(out,null)},function(e){cb(out,e.toString())});
+}
+function sc1(code,out,err){
+  var d=[0,0,0],seq="1,2,3,4,5,6",ok=false,sing=[],L=out.split("\n");
+  if(!err&&out.trim())d[0]=1;
+  L.forEach(function(l){var t=(l.match(/\d+/g)||[]).map(Number);if(t.join()===seq)ok=true;if(t.length===1)sing.push(t[0])});
+  var i=0;sing.forEach(function(x){if(x===i+1)i++});if(i===6)ok=true;
+  if(d[0]&&ok)d[1]=2;
+  var n=L.filter(function(l){return l.trim()}).length,pc=(code.match(/print\s*\(/g)||[]).length;
+  if(d[0]&&pc>=2)d[2]=n>=8?2:n>=3?1:0;
+  return d;
+}
+function chips(){
+  var d=ST.d,c=function(ok,t){return'<span class="ch '+(ok?"ok":"no")+'">'+(ok?"✔ ":"✖ ")+t+'</span>'};
+  $("chips").innerHTML=c(d[0]===1,"Қатесіз орындалды: "+d[0]+"/1")+c(d[1]===2,"Шыңдардың реті: "+d[1]+"/2")+c(d[2]===2,"Кезек қадамдары: "+d[2]+"/2")+'<span class="ch">Түсіндірме: мұғалім бағалайды</span>';
+  total();
+}
+function total(){$("tot").textContent=ST.d[0]+ST.d[1]+ST.d[2]+ST.m}
+function buildRows(){
+  var h="";
+  TERMS.forEach(function(t,i){h+='<div class="row"><span>'+(i+1)+'. '+t+'</span><select data-i="'+i+'"><option value="">—</option><option>A</option><option>B</option><option>C</option><option>D</option></select><b id="mk'+i+'"></b></div>'});
+  $("rows").innerHTML=h;
+  document.querySelectorAll("#rows select").forEach(function(s){s.value=ST.t2[+s.dataset.i];s.onchange=function(){ST.t2[+s.dataset.i]=s.value;save()}});
+}
+function start(){
+  $("gate").hidden=true;$("lesson").hidden=false;
+  $("ed").value=ST.code;$("ex").value=ST.expl;buildRows();
+  if($("out")&&ST.out)$("out").textContent=ST.out+(ST.err?"\n⚠ Қате: "+ST.err:"");
+  chips();
+}
+$("go").onclick=function(){
+  var n=$("nm").value.trim(),c=$("cl").value.trim();
+  if(n.length<3||!c){$("ge").textContent="Аты-жөніңіз бен сыныбыңызды толық жазыңыз.";return}
+  ST.name=n;ST.cls=c;save();start();
+};
+$("ed").addEventListener("keydown",function(e){
+  if(e.key==="Tab"){e.preventDefault();var s=this.selectionStart;this.value=this.value.slice(0,s)+"    "+this.value.slice(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4}
+});
+$("ed").oninput=function(){ST.code=this.value;save()};
+$("ex").oninput=function(){ST.expl=this.value;save()};
+$("reset").onclick=function(){$("ed").value=ST.code=STARTER;save()};
+$("run").onclick=function(){
+  ST.code=$("ed").value;
+  if(typeof Sk==="undefined"){$("out").textContent="Python жүктелмеді. Интернетті тексеріп, бетті жаңартыңыз.";return}
+  $("out").textContent="Орындалуда…";
+  runPy(ST.code,function(o,e){
+    ST.out=o;ST.err=e||"";ST.d=sc1(ST.code,o,e);
+    var t=o;
+    if(e){t+="\n⚠ Қате: "+e;if(/deque|collections/.test(e))t+="\nКеңес: deque жұмыс істемесе, queue = [start_node] тізімін алып, queue.pop(0) қолданыңыз."}
+    $("out").textContent=t||"(нәтиже жоқ)";chips();save();
+  });
+};
+$("chk").onclick=function(){
+  var m=0;
+  ST.t2.forEach(function(a,i){var ok=a===KEY[i];if(ok)m++;$("mk"+i).textContent=a?(ok?"✔":"✖"):""});
+  ST.m=m;ST.att++;$("t2s").textContent="Дұрыс жауап: "+m+" / 4";total();save();
+};
+$("snd").onclick=function(){
+  var o={n:ST.name,c:ST.cls,d:ST.d,m:ST.m,att:ST.att,e:ST.expl,k:ST.code.slice(0,2500),o:ST.out.slice(0,1500),er:ST.err,t2:ST.t2};
+  $("rc").value="HM1:"+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  $("sendbox").hidden=false;
+};
+$("cp").onclick=function(){
+  var t=$("rc");t.select();
+  try{navigator.clipboard.writeText(t.value).then(function(){$("cps").textContent="Көшірілді ✔"},function(){document.execCommand("copy");$("cps").textContent="Көшірілді ✔"})}catch(e){document.execCommand("copy");$("cps").textContent="Көшірілді ✔"}
+};
+/* teacher */
+var TR=[];try{TR=JSON.parse(localStorage.getItem("bfst")||"[]")}catch(e){}
+function tsave(){try{localStorage.setItem("bfst",JSON.stringify(TR))}catch(e){}}
+function tot(r){return r.d[0]+r.d[1]+r.d[2]+(r.d4||0)+r.m}
+function trender(){
+  var h='<table><tr><th>Оқушы</th><th>Сынып</th><th>Python (0–5)</th><th>Түсіндірме (0–1)</th><th>Сәйкестендіру (0–4)</th><th>Барлығы /10</th><th></th></tr>';
+  TR.forEach(function(r,i){
+    h+='<tr><td>'+esc(r.n)+'</td><td>'+esc(r.c)+'</td><td>'+(r.d[0]+r.d[1]+r.d[2])+'</td><td><select data-d4="'+i+'"><option value="">?</option><option value="0"'+(r.d4===0?" selected":"")+'>0</option><option value="1"'+(r.d4===1?" selected":"")+'>1</option></select></td><td>'+r.m+' ('+r.att+' әрекет)</td><td><b>'+tot(r)+'</b></td><td><button class="g" data-v="'+i+'">Көру</button> <button class="g" data-x="'+i+'">×</button></td></tr>';
+  });
+  $("tt").innerHTML=TR.length?h+'</table>':"<p>Әзірге нәтиже жоқ.</p>";
+}
+$("ta").onclick=function(){
+  try{
+    var r=JSON.parse(decodeURIComponent(escape(atob($("tc").value.trim().replace(/^HM1:/,"")))));
+    var k=TR.findIndex(function(x){return x.n===r.n&&x.c===r.c});
+    if(k>-1){r.d4=TR[k].d4;TR[k]=r}else TR.push(r);
+    tsave();trender();$("tc").value="";$("te").textContent="";
+  }catch(e){$("te").textContent="Код дұрыс емес. Толық көшіріп қойыңыз."}
+};
+$("tt").addEventListener("change",function(e){
+  var i=e.target.dataset.d4;if(i===undefined)return;
+  TR[+i].d4=e.target.value===""?undefined:+e.target.value;tsave();trender();
+});
+$("tt").addEventListener("click",function(e){
+  var d=e.target.dataset;
+  if(d.x!==undefined){if(confirm("Өшіруге бе?")){TR.splice(+d.x,1);tsave();trender();$("td").hidden=true}}
+  if(d.v!==undefined){
+    var r=TR[+d.v];
+    $("td").hidden=false;
+    $("td").innerHTML='<h2>'+esc(r.n)+' ('+esc(r.c)+')</h2><p><b>Түсіндірме:</b> '+esc(r.e||"—")+'</p><p><b>Код:</b></p><pre>'+esc(r.k)+'</pre><p><b>Нәтиже:</b></p><pre>'+esc(r.o)+(r.er?"\n⚠ "+esc(r.er):"")+'</pre><p><b>2-тапсырма жауаптары:</b> '+esc((r.t2||[]).join(", "))+'</p>';
+  }
+});
+$("tx").onclick=function(){
+  var t=TR.map(function(r){return[r.n,r.c,r.d[0]+r.d[1]+r.d[2],r.d4===undefined?"":r.d4,r.m,tot(r)].join("\t")}).join("\n");
+  try{navigator.clipboard.writeText(t).then(function(){$("txs").textContent="Көшірілді ✔"})}catch(e){}
+};
+function route(){var t=location.hash==="#teacher";$("tp").hidden=!t;$("stu").hidden=t;document.querySelector("footer").hidden=t;if(t)trender()}
+window.addEventListener("hashchange",route);route();
+if(ST.name)start();
+</script>
+</body>
+</html>
